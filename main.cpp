@@ -25,11 +25,12 @@ int main(int argc, char **argv)
     
     if (solution)
     {
+    	std::cout << "SAT" << std::endl;
         solution.value().printFullValuation(std::cout);
         std::cout << std::endl;
     }
     else
-        std::cout << "UNSAT";
+        std::cout << "UNSAT" << std::endl;
 
     return 0;
 }
