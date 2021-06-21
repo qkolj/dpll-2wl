@@ -21,12 +21,15 @@ int main(int argc, char **argv)
     }
     
     DPLL solver{dimacsStream};
-    OptionalPartialValuation solution = solver.solve2wl();
+    OptionalPartialValuation solution = solver.solve();
     
     if (solution)
-        std::cout << solution.value() << std::endl;
+    {
+        solution.value().printFullValuation(std::cout);
+        std::cout << std::endl;
+    }
     else
-        std::cout << "UNSAT" << std::endl;
-    
+        std::cout << "UNSAT";
+
     return 0;
 }

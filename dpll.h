@@ -16,11 +16,8 @@ public:
     DPLL(const CNFFormula &formula);
     DPLL(std::istream &dimacsStream);
     OptionalPartialValuation solve();
-    OptionalPartialValuation solve2wl();
     
 private:
-    bool hasConflict() const;
-    Literal hasUnitClause() const;
     void initWatchlists();
     bool updateWatchlists(Literal l, std::vector<Literal>* unitPropQueue);
     

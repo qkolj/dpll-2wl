@@ -25,14 +25,13 @@ public:
     
     void push(Literal l, bool decide = false);
     Literal backtrack();
-    bool isClauseFalse(const Clause &c) const;
-    Literal isClauseUnit(const Clause &c) const;
     Literal firstUndefined() const;
     bool isLiteralUndefined(Literal l) const;
     bool isLiteralFalse(Literal l) const;
     bool isLiteralTrue(Literal l) const;
     void reset(unsigned nVars);
     friend std::ostream &operator<<(std::ostream &out, const PartialValuation &pv);
+    void printFullValuation(std::ostream &out) const;
     
 private:
     std::vector<ExtendedBool> _values;

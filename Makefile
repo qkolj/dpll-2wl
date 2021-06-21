@@ -7,8 +7,8 @@ all: $(OUTPUT)
 $(OUTPUT): $(HEADERS) $(SOURCES)
 	g++ -o $@ $(SOURCES)
 	
-debug: partial_valuation.h partial_valuation.cpp dpll.h dpll.cpp main.cpp
-	g++ -DDEBUG -o dpll $^
+debug: $(HEADERS) $(SOURCES)
+	g++ -DDEBUG -o $(OUTPUT)-debug $(SOURCES)
 
 .PHONY: clean
 

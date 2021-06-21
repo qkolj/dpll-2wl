@@ -39,43 +39,6 @@ Literal PartialValuation::backtrack()
     return last == NullLiteral ? lastDecided : NullLiteral;
 }
 
-bool PartialValuation::isClauseFalse(const Clause &c) const
-{
-    for(Literal l : c)
-    {
-        ExtendedBool varInClause = l > 0 ? ExtendedBool::True : ExtendedBool::False;
-        ExtendedBool varInValuation = _values[std::abs(l)];
-        if(varInClause == varInValuation || varInValuation == ExtendedBool::Undefined)
-            return false;
-    }
-    return true;
-}
-
-Literal PartialValuation::isClauseUnit(const Clause &c) const
-{
-    Literal undefinedLiteral = NullLiteral;
-    int undefCount = 0;
-    
-    for(Literal l : c)
-    {
-        ExtendedBool varInClause = l > 0 ? ExtendedBool::True : ExtendedBool::False;
-        ExtendedBool varInValuation = _values[std::abs(l)];
-        if(varInClause != varInValuation)
-        {
-            if(varInValuation == ExtendedBool::Undefined)
-            {
-                undefCount++;
-                undefinedLiteral = l;
-                if(undefCount > 1)
-                    break;
-            }
-        }
-        else
-            return NullLiteral;
-    }
-    return undefCount == 1 ? undefinedLiteral : NullLiteral;
-}
-
 Literal PartialValuation::firstUndefined() const
 {
     auto it = std::find(_values.cbegin() + 1, _values.cend(), ExtendedBool::Undefined);
@@ -97,23 +60,37 @@ std::ostream &operator<<(std::ostream &out, const PartialValuation &pv)
     for(std::size_t i = 1; i < pv._values.size(); i++)
     {
         if(pv._values[i] == ExtendedBool::True)
-            out << 'p' << i << ' ';
+            out << 'p' << i << " ";
         else if(pv._values[i] == ExtendedBool::False)
-            out << "~p" << i << ' ';
+            out << "~p" << i << " ";
         else if(pv._values[i] == ExtendedBool::Undefined)
-            out << 'u' << i << ' ';
+            out << 'u' << i << " ";
         else
             throw std::logic_error("Unexpected value assigned to a variable");
     }
-    
-//     return out << "]";
-    
-    out << "]\t||\t";
-    for(auto l : pv._stack)
-    {
-        out << l << " ";
-    }
+
+    out << "]\t||\t STACK: ";
+
+    for(const auto l : pv._stack)
+    	if(l != 0)
+        	out << l << " ";
+        else
+        	out << "| ";
+
     return out;
+}
+
+void PartialValuation::printFullValuation(std::ostream &out) const
+{
+	for(std::size_t i = 1; i < _values.size(); i++)
+    {
+        if(_values[i] == ExtendedBool::True)
+            out << i << " ";
+        else if(_values[i] == ExtendedBool::False)
+            out << "-" << i << " ";
+        else
+            throw std::logic_error("Undefined value in a full valuation");
+    }
 }
 
 bool PartialValuation::isLiteralUndefined(Literal l) const

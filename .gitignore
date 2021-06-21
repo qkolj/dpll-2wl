@@ -1,2 +1,4 @@
 *.o
 dpll-2wl
+dpll-2wl-debug
+.directory

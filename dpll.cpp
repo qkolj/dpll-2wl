@@ -57,53 +57,6 @@ DPLL::DPLL(std::istream &dimacsStream)
     initWatchlists();
 }
 
-OptionalPartialValuation DPLL::solve()
-{
-    while(true)
-    {
-//         std::cout << _valuation << std::endl;
-        Literal l;
-        if(hasConflict())
-        {
-            Literal decidedLiteral = _valuation.backtrack();
-            if(decidedLiteral == NullLiteral)
-                return {};
-            
-            _valuation.push(-decidedLiteral);
-        }
-        else if((l = hasUnitClause()))
-        {
-            _valuation.push(l);
-        }
-        else
-        {
-            if((l = _valuation.firstUndefined()))
-                _valuation.push(l, true);
-            else
-                return _valuation;
-        }
-    }
-}
-
-bool DPLL::hasConflict() const
-{
-    for(const Clause &c : _formula)
-        if(_valuation.isClauseFalse(c))
-            return true;
-    
-    return false;
-}
-
-Literal DPLL::hasUnitClause() const
-{
-    Literal l;
-    for(const Clause &c : _formula)
-        if((l = _valuation.isClauseUnit(c)))
-            return l;
-        
-    return NullLiteral;
-}
-
 void DPLL::initWatchlists()
 {
     for(const Clause &c : _formula)
@@ -119,22 +72,21 @@ void DPLL::initWatchlists()
         }
         else
         {
-//             _valuation.push(c[0]);
             _added_unit.push_back(c[0]);
         }
 }
 
-OptionalPartialValuation DPLL::solve2wl()
+OptionalPartialValuation DPLL::solve()
 {
     bool conflict = false;
     std::vector<Literal> unitPropQueue;
     
     DB(std::cout << "UNIT CLAUSES FROM THE START: ";
-    for(auto l : _added_unit)
+    for(const auto l : _added_unit)
         std::cout << l << " ";
     std::cout << std::endl;);
     
-    for(auto l : _added_unit)
+    for(const auto l : _added_unit)
     {
         DB(std::cout << "UNIT PROPING " << l << std::endl);
         _valuation.push(l);
@@ -145,7 +97,7 @@ OptionalPartialValuation DPLL::solve2wl()
     while(unitPropQueue.size() > 0)
     {
         DB(std::cout << "UNIT PROP QUEUE IS ";
-        for(auto a : unitPropQueue)
+        for(const auto a : unitPropQueue)
             std::cout << a << " ";
         std::cout << std::endl;);
         Literal l = unitPropQueue.back();
@@ -164,7 +116,7 @@ OptionalPartialValuation DPLL::solve2wl()
         if(unitPropQueue.size() > 0)
         {
             DB(std::cout << "UNIT PROP QUEUE IS ";
-            for(auto a : unitPropQueue)
+            for(const auto a : unitPropQueue)
                 std::cout << a << " ";
             std::cout << std::endl;);
             bool conf = false;
@@ -223,15 +175,6 @@ OptionalPartialValuation DPLL::solve2wl()
             }
             else
             {
-//                 std::cout << "============================================" << std::endl;
-//                 for(const Clause &c : _formula)
-//                     if(_valuation.isClauseFalse(c))
-//                     {
-//                         for(auto l : c)
-//                             std::cout << l << " ";
-//                         std::cout << std::endl;
-//                     }
-//                 std::cout << "============================================" << std::endl << (hasConflict() ? "UNSAT" : "SAT") << std::endl;
                 return _valuation;
             }
         }
@@ -247,11 +190,10 @@ bool DPLL::updateWatchlists(Literal l, std::vector<Literal>* unitPropQueue)
         bool foundUndefined = false, foundTrue = false;
         Literal undef;
         DB(std::cout << "CHECKING CLAUSE ";
-        for(auto li : c)
-            std::cout << li << " ");
+        for(const auto li : c)
+            std::cout << li << "(" << (_valuation.isLiteralTrue(li) ? 1 : (_valuation.isLiteralUndefined(li) ? 0 : -1)) << ") ");
         for(const Literal lit : c)
         {
-            DB(std::cout << lit << "(" << (_valuation.isLiteralTrue(lit) ? 1 : (_valuation.isLiteralUndefined(lit) ? 0 : -1)) << ") ";);
             if(_valuation.isLiteralTrue(lit))
             {
                 foundTrue = true;
@@ -265,7 +207,7 @@ bool DPLL::updateWatchlists(Literal l, std::vector<Literal>* unitPropQueue)
         }
         DB(std::cout << std::endl << "IN CLAUSE ";
             for(auto li : c)
-                std::cout << li << " ");
+                std::cout << li << "(" << (_valuation.isLiteralTrue(li) ? 1 : (_valuation.isLiteralUndefined(li) ? 0 : -1)) << ") ");
         if(foundTrue)
         {
             DB(std::cout << "FOUND TRUE" << std::endl);
@@ -300,14 +242,14 @@ bool DPLL::updateWatchlists(Literal l, std::vector<Literal>* unitPropQueue)
                     }
                     else
                     {
-                        DB(std::cout << "VARIABLE " << std::abs(_clauses_watched_literals[c][1]) << " ALREADY IN VALUATION, REPORTING CONFLICT" << std::endl);
+                        DB(std::cout << "OPOSITE LITERAL OF " << _clauses_watched_literals[c][1] << " ALREADY IN VALUATION, REPORTING CONFLICT" << std::endl);
                         return true;
                     }
                 }
                 else
                 {
                     DB(std::cout << "ALL FALSE, REPORTING CONFLICT" << std::endl);
-                    for(auto c : unwatch)
+                    for(const auto c : unwatch)
                         _literals_watchlist[l].erase(std::remove(_literals_watchlist[l].begin(), _literals_watchlist[l].end(), c), _literals_watchlist[l].end());
                     return true;
                 }
@@ -324,14 +266,14 @@ bool DPLL::updateWatchlists(Literal l, std::vector<Literal>* unitPropQueue)
                     }
                     else
                     {
-                        DB(std::cout << "VARIABLE " << std::abs(_clauses_watched_literals[c][0]) << " ALREADY IN VALUATION, REPORTING CONFLICT" << std::endl);
+                        DB(std::cout << "OPOSITE LITERAL OF " << _clauses_watched_literals[c][0] << " ALREADY IN VALUATION, REPORTING CONFLICT" << std::endl);
                         return true;
                     }
                 }
                 else
                 {
                     DB(std::cout << "ALL FALSE, REPORTING CONFLICT" << std::endl);
-                    for(auto c : unwatch)
+                    for(const auto c : unwatch)
                         _literals_watchlist[l].erase(std::remove(_literals_watchlist[l].begin(), _literals_watchlist[l].end(), c), _literals_watchlist[l].end());
                     return true;
                 }
@@ -339,7 +281,7 @@ bool DPLL::updateWatchlists(Literal l, std::vector<Literal>* unitPropQueue)
         }
     }
     
-    for(auto c : unwatch)
+    for(const auto c : unwatch)
         _literals_watchlist[l].erase(std::remove(_literals_watchlist[l].begin(), _literals_watchlist[l].end(), c), _literals_watchlist[l].end());
     
     return false;
