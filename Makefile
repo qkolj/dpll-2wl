@@ -1,16 +1,19 @@
-HEADERS := partial_valuation.h dpll.h
-SOURCES := partial_valuation.cpp dpll.cpp main.cpp
-OUTPUT := dpll-2wl
+SRC_DIR := src
 
-all: $(OUTPUT)
+HEADERS := $(wildcard $(SRC_DIR)/*.h)
+SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
+OUTPUT := dpll-2wl
+OUTPUT_DB := dpll-2wl-debug
+
+.PHONY: all
+all: $(OUTPUT) $(OUTPUT_DB)
 
 $(OUTPUT): $(HEADERS) $(SOURCES)
-	g++ -o $@ $(SOURCES)
-	
-debug: $(HEADERS) $(SOURCES)
-	g++ -DDEBUG -o $(OUTPUT)-debug $(SOURCES)
+	g++ -Wall -o $@ $(SOURCES)
+
+$(OUTPUT_DB): $(HEADERS) $(SOURCES)
+	g++ -DDEBUG -Wall -o $@ $(SOURCES)
 
 .PHONY: clean
-
 clean:
-	rm -f *.o $(OUTPUT)
+	rm -f *.o $(OUTPUT) $(OUTPUT_DB)
